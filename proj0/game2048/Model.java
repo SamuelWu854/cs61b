@@ -1,10 +1,9 @@
 package game2048;
 
-import com.sun.javafx.scene.SceneEventDispatcher;
 
-import javax.print.attribute.standard.Finishings;
 import java.util.Formatter;
 import java.util.Observable;
+import game2048.Tile;
 
 
 /** The state of a game of 2048.
