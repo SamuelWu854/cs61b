@@ -1,5 +1,8 @@
 package gitlet;
 
+import net.sf.saxon.expr.Calculator;
+import org.junit.validator.PublicClassValidator;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -17,6 +20,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
+
+import static gitlet.Repository.GITLET_DIR;
+import static gitlet.Repository.OBJ_DIR;
 
 
 /** Assorted utilities.
@@ -236,4 +242,34 @@ class Utils {
         System.out.printf(msg, args);
         System.out.println();
     }
+
+    public static void validateNumArgs(String cmd, String[] args, int n) {
+        if (args.length != n) {
+            throw new RuntimeException(
+                    String.format("Invalid number of arguments for: %s.", cmd));
+        }
+    }
+
+    public static void printandExit(String msg){
+        System.out.println(msg);
+        System.exit(0);
+    }
+
+    public static File getFileById(String sha1){
+        // decide where we should put the file by the first two letters
+        File dir = join(OBJ_DIR, sha1.substring(0, 2));
+        File file = join(dir, sha1.substring(2));
+        return file;
+    }
+
+    public static void initializedCheck(){
+        if(!GITLET_DIR.exists()){
+            printandExit("Not in an initialized Gitlet directory.");
+        }
+    }
+
+
+
+
+
 }

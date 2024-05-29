@@ -1,5 +1,7 @@
 package capers;
 
+import org.junit.Test;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -18,11 +20,13 @@ import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
 
+import static capers.CapersRepository.CWD;
+
 
 /** Assorted utilities.
  *  @author P. N. Hilfinger
  */
-class Utils {
+ public class Utils {
 
     /* READING AND WRITING FILE CONTENTS */
 
@@ -149,6 +153,11 @@ class Utils {
      *  for the String.format method. */
     static RuntimeException error(String msg, Object... args) {
         return new RuntimeException(String.format(msg, args));
+    }
+
+    @Test
+    public void test(){
+        join(CWD, "")
     }
 
 }
