@@ -1,7 +1,6 @@
 package gitlet;
 
-import afu.org.checkerframework.checker.igj.qual.I;
-import net.sf.saxon.trans.LicenseException;
+
 
 import java.io.File;
 import static gitlet.Utils.*;

@@ -1,7 +1,5 @@
 package gitlet;
 
-import net.sf.saxon.expr.Calculator;
-import org.junit.validator.PublicClassValidator;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
