@@ -53,7 +53,7 @@ public class Commit implements Serializable {
         message = "initial commit";
         timeStamp = "Thu Jan 1 08:00:00 1970 +0800";
         parentCommit = new ArrayList<>();
-        sha1Value = sha1(message, timeStamp, parentCommit, storedFile.toString());
+        sha1Value = sha1(message, timeStamp, parentCommit.toString(), storedFile.toString());
         File fileToSave = getFileById(sha1Value);
         writeToGlobalLog();
         writeObject(fileToSave, this);
