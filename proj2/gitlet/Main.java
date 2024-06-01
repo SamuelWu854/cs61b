@@ -4,7 +4,7 @@ import static gitlet.Utils.printandExit;
 import static gitlet.Utils.validateNumArgs;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
+ *  @author Samuel
  */
 public class Main {
 
@@ -12,7 +12,6 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args) {
-        // TODO: what if args is empty? check
         if (args.length == 0 || args == null) {
             printandExit("Must have at least one argument");
         }
