@@ -55,7 +55,7 @@ public class Commit implements Serializable {
         parentCommit = new ArrayList<>();
         sha1Value = sha1(message, timeStamp, parentCommit, storedFile.toString());
         File fileToSave = getFileById(sha1Value);
-        //TODO: need to write it to log
+        writeToGlobalLog();
         writeObject(fileToSave, this);
         return sha1Value;
     }
@@ -70,6 +70,10 @@ public class Commit implements Serializable {
 
     public Map<String, String> getStoredFile() {
         return storedFile;
+    }
+
+    public String getMessage() {
+        return message;
     }
 
     /**
@@ -101,7 +105,7 @@ public class Commit implements Serializable {
         String sha1 = sha1(timeStamp, message, parentCommit.toString(), storedFile.toString());
         File fileById = getFileById(sha1);
         writeObject(fileById, this);
-        // TODO write to log
+        writeToGlobalLog();
         return sha1;
     }
 
@@ -127,6 +131,12 @@ public class Commit implements Serializable {
         System.out.println("Date: " + this.timeStamp);
         System.out.println(this.message);
         System.out.println();
+    }
+
+    public void writeToGlobalLog() {
+        GlobalLogs logs = new GlobalLogs();
+        logs.addLogs(this.sha1Value);
+        logs.writeToLogs();
     }
 
 }

@@ -1,5 +1,6 @@
 package gitlet;
 
+import static gitlet.Utils.printandExit;
 import static gitlet.Utils.validateNumArgs;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
@@ -12,8 +13,8 @@ public class Main {
      */
     public static void main(String[] args) {
         // TODO: what if args is empty? check
-        if (args.length == 0) {
-            Utils.error("Must have at least one argument");
+        if (args.length == 0 || args == null) {
+            printandExit("Must have at least one argument");
         }
         String firstArg = args[0];
         switch(firstArg) {
@@ -36,6 +37,14 @@ public class Main {
             case "log":
                 validateNumArgs(firstArg, args, 1);
                 Repository.log();
+                break;
+            case "global-log":
+                validateNumArgs(firstArg, args, 1);
+                Repository.globalLog();
+                break;
+            case "find":
+                validateNumArgs(firstArg, args, 2);
+                Repository.find(args[1]);
                 break;
             // TODO: FILL THE REST IN
         }

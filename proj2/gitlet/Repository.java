@@ -40,6 +40,9 @@ public class Repository {
     /** Stage. Stage is actually a index file contains reference of relation between files and blobs */
     public static final File INDEX = join(GITLET_DIR, "INDEX");
 
+    public static final File GLOBAL_LOGS = join(GITLET_DIR, "logs");
+
+
 
     public static void init(){
         // create new .gitlet folder(check if it's the first time)
@@ -137,5 +140,17 @@ public class Repository {
         initializedCheck();
         Commit headCommit = getHeadCommitByHash();
         headCommit.getLog();
+    }
+
+    public static void globalLog() {
+        initializedCheck();
+        GlobalLogs globalLogs = new GlobalLogs();
+        globalLogs.getGlobalLogs();
+    }
+
+    public static void find(String commitMsg) {
+        initializedCheck();
+        GlobalLogs globalLogs = new GlobalLogs();
+        globalLogs.find(commitMsg);
     }
 }
