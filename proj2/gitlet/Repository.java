@@ -153,4 +153,7 @@ public class Repository {
         GlobalLogs globalLogs = new GlobalLogs();
         globalLogs.find(commitMsg);
     }
+
+//    public static void stage() {
+//    }
 }

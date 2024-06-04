@@ -23,7 +23,7 @@ public class Main {
                 break;
             case "add":
                 validateNumArgs(firstArg, args, 2);
-                Repository.add(args[2]);
+                Repository.add(args[1]);
                 break;
             case "commit":
                 validateNumArgs(firstArg, args, 2);
@@ -45,6 +45,10 @@ public class Main {
                 validateNumArgs(firstArg, args, 2);
                 Repository.find(args[1]);
                 break;
+//            case "stage":
+//                validateNumArgs(firstArg, args, 1);
+//                Repository.stage();
+//                break;
             // TODO: FILL THE REST IN
         }
     }
