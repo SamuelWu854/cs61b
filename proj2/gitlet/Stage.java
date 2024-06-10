@@ -20,6 +20,11 @@ public class Stage implements Serializable {
     // file path as key
     private HashSet<String> removed;
 
+    public Stage() {
+        removed = new HashSet<>();
+        added = new HashMap<>();
+    }
+
     public HashMap<String, String> getAdded() {
         return added;
     }
