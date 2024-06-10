@@ -5,6 +5,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -139,4 +140,21 @@ public class Commit implements Serializable {
         logs.writeToLogs();
     }
 
+    public boolean checkOutFileName(String fileName){
+        String sha1 = storedFile.get(fileName);
+        if (sha1 == null){
+            return false;
+        }
+        Blob.getBlobById(sha1).writeToSourceFile();
+        return true;
+    }
+
+    public void putFilesToCWD() {
+        for (String s : storedFile.keySet()){
+            String s1 = storedFile.get(s);
+            Blob b = Blob.getBlobById(s1);
+            File f = join(CWD, s);
+            writeContents(f, b.getContent());
+        }
+    }
 }

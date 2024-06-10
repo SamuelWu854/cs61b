@@ -30,22 +30,25 @@ public class Stage implements Serializable {
 
     public void add(String fileName){
         File file = join(CWD, fileName);
-        String path = file.getPath();
 
         Blob blob = new Blob(file);
         String blobId = blob.getBlobId();
 
         // if the file had been saved in commit and had not changed
-        if (getHeadCommitByHash().getStoredFile().get(path).equals(blobId)) {
+        if (getHeadCommitByHash().getStoredFile().get(fileName) == null){
+            added.put(fileName, blobId);
+            removeAdd(fileName);
+            writeObject(Repository.INDEX, this);
+        } else if (getHeadCommitByHash().getStoredFile().get(fileName).equals(blobId)) {
             // added area and removed area should remove it
-            if (added.containsKey(path)) {
-                added.remove(path);
+            if (added.containsKey(fileName)) {
+                added.remove(fileName);
             }
-            removeAdd(path);
+            removeAdd(fileName);
             writeObject(Repository.INDEX, this);
         } else {
-            added.put(path, blobId);
-            removeAdd(path);
+            added.put(fileName, blobId);
+            removeAdd(fileName);
             writeObject(Repository.INDEX, this);
         }
     }
@@ -56,10 +59,8 @@ public class Stage implements Serializable {
      * @return
      */
     public boolean remove(File file){
-        // get filePath as key
-        String path = file.getPath();
         //check both added and tracked
-        String blobId = added.remove(path);
+        String blobId = added.remove(file.getName());
         if(blobId != null){
             // staging area has been changed
             return true;
@@ -68,16 +69,16 @@ public class Stage implements Serializable {
         if (tracked.get(blobId) != null){
             if(file.exists())
                 file.delete();
-            return removed.add(path);
+            return removed.add(file.getName());
         }
         return false;
     }
 
 
 
-    public void removeAdd(String filePath){
-        if(removed.contains(filePath)){
-            removed.remove(filePath);
+    public void removeAdd(String fileName){
+        if(removed.contains(fileName)){
+            removed.remove(fileName);
         }
     }
 
@@ -92,8 +93,8 @@ public class Stage implements Serializable {
 
     public HashMap commit(){
         tracked.putAll(added);
-        for(String filePath : removed){
-            tracked.remove(filePath);
+        for(String fileName : removed){
+            tracked.remove(fileName);
         }
         return tracked;
     }
@@ -102,4 +103,17 @@ public class Stage implements Serializable {
         writeObject(INDEX, this);
     }
 
+
+    public void status() {
+        System.out.println("=== Staged Files ===");
+        for (String s : added.keySet()) {
+            System.out.println(s);
+        }
+        System.out.println();
+        System.out.println();
+        for (String s : removed) {
+            System.out.println(s);
+        }
+        System.out.println();
+    }
 }

@@ -45,11 +45,43 @@ public class Main {
                 validateNumArgs(firstArg, args, 2);
                 Repository.find(args[1]);
                 break;
-//            case "stage":
-//                validateNumArgs(firstArg, args, 1);
-//                Repository.stage();
-//                break;
+            case "status":
+                validateNumArgs(firstArg, args, 1);
+                Repository.status();
+                break;
+            case "checkout":
+                checkOut(args);
+                break;
+            case "branch":
+                validateNumArgs(firstArg, args, 1);
+                Repository.createBranch(args[0]);
+                break;
             // TODO: FILL THE REST IN
         }
     }
+
+    public static void checkOut(String[] args){
+            if (args.length == 2) {
+                String branchName = args[1];
+                Repository.changeBranch(branchName);
+            } else if (args.length == 3) {
+                if (args[1].equals("--")) {
+                    String fName = args[2];
+                    Repository.checkOutFile(fName);
+                } else {
+                    printandExit("Incorrect operands.");
+                }
+            } else if (args.length == 4) {
+                if (args[2].equals("--")) {
+                    String bId = args[1];
+                    String fName = args[3];
+                    Repository.checkOutFileFromCommit(bId, fName);
+                } else {
+                    printandExit("Incorrect operands.");
+                }
+            } else {
+                printandExit("Incorrect operands.");
+            }
+    }
+
 }

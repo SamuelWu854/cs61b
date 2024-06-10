@@ -27,10 +27,10 @@ public class Blob implements Serializable {
     // source file
     private File sourceFile;
 
-    public Blob(File pathOfSourceFile) {
-        this.sourceFile = pathOfSourceFile;
+    public Blob(File file) {
+        this.sourceFile = file;
         //read as String and serialize it to objects
-        content = readContents(pathOfSourceFile);
+        content = readContents(file);
         blobId = sha1(content);
         blobDir = join(OBJ_DIR, blobId.substring(0, 2));
         blobFile = join(blobDir, blobId.substring(2));
@@ -49,4 +49,14 @@ public class Blob implements Serializable {
     public File getBlobFile() {
         return blobFile;
     }
+
+    public void writeToSourceFile(){
+        writeContents(sourceFile, content);
+    }
+
+     public static Blob getBlobById(String sha1){
+        return readObject(getFileById(sha1), Blob.class);
+     }
+
+
 }

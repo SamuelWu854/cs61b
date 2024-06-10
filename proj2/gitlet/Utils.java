@@ -19,8 +19,7 @@ import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
 
-import static gitlet.Repository.GITLET_DIR;
-import static gitlet.Repository.OBJ_DIR;
+import static gitlet.Repository.*;
 
 
 /** Assorted utilities.
@@ -266,8 +265,29 @@ class Utils {
         }
     }
 
+    public static File getFileFromShortId(String id){
+        File objDir = join(OBJ_DIR, id.substring(0, 2));
+        File[] files = objDir.listFiles();
+        String fileName = id.substring(2);
+        for (File f : files){
+            String name = f.getName();
+            if(name.equals(fileName)){
+                return f;
+            }
+        }
+        return null;
+    }
 
+    public static File findBranch(String branchName){
+        File[] branchList = HEAD_DIR.listFiles();
+        for (File f : branchList){
+            String name = f.getName();
+            if (name.equals(branchName)){
+                return f;
+            }
+        }
+        return null;
 
-
+    }
 
 }

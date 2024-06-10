@@ -3,6 +3,8 @@ package gitlet;
 
 
 import java.io.File;
+import java.util.*;
+
 import static gitlet.Utils.*;
 
 // TODO: any imports you need here
@@ -154,6 +156,126 @@ public class Repository {
         globalLogs.find(commitMsg);
     }
 
-//    public static void stage() {
-//    }
+    public static void status() {
+        initializedCheck();
+        branchStatus();
+        Stage stage = getIndex();
+        stage.status();
+    }
+
+    private static void branchStatus() {
+        File[] files = HEAD_DIR.listFiles();
+        String headName = readContentsAsString(HEAD_FILE);
+        Arrays.sort(files);
+        System.out.println("=== Branches ===");
+        for (File f : files) {
+            String s = f.getName();
+            if (s.equals(headName)) {
+                System.out.println("*" + s);
+            } else {
+                System.out.println(s);
+            }
+        }
+        System.out.println();
+    }
+
+    public static void checkOutFile(String fName) {
+        initializedCheck();
+        if (!getHeadCommitByHash().checkOutFileName(fName)) {
+            printandExit("File does not exist in that commit.");
+        }
+    }
+
+
+    public static void changeBranch(String branchName) {
+        initializedCheck();
+        File branchFile = findBranch(branchName);
+        if (branchFile == null){
+            printandExit("No such branch exists.");
+        }
+        if (branchName.equals(getHeadFileOfBranch().getName())){
+            System.out.println("No need to checkout the current branch.");
+        }
+        //1.find all current file
+        HashMap<String, String> currentFiles = findAllCurrentFiles();
+        //2. check whether they are untracked
+        List<String> untracked = findFilesUntracked(currentFiles);
+        String branchId = readContentsAsString(branchFile);
+        Commit targetCommit = readObject(getFileById(branchId), Commit.class);
+        Map<String, String> targetCommitFile = targetCommit.getStoredFile();
+        for (String s : untracked){
+            String untrackedblobId = currentFiles.get(s);
+            if (!untrackedblobId.equals(targetCommitFile.get(s))) {
+                //same name with different id means sth changed unsaved
+                printandExit("There is an "
+                        + "untracked file in the way; delete it, or add and commit it first.");
+            }
+        }
+        deleteCurrentFiles();
+        targetCommit.putFilesToCWD();
+        writeContents(HEAD_FILE, branchName);
+        INDEX.delete();
+    }
+
+    private static void deleteCurrentFiles() {
+        File[] files = CWD.listFiles(File::isFile);
+        for (File file : files){
+            restrictedDelete(file);
+        }
+    }
+
+    public static void checkOutFileFromCommit(String id, String fName) {
+        initializedCheck();
+        File commitFile = getFileFromShortId(id);
+        if (commitFile == null){
+            System.out.println("No commit with that id exists.");
+        }
+        Commit commit = readObject(commitFile, Commit.class);
+        if (commit == null){
+            System.out.println("No commit with that id exists.");
+        }
+        if (!getHeadCommitByHash().checkOutFileName(fName)) {
+            printandExit("File does not exist in that commit.");
+        }
+    }
+
+    private static HashMap<String, String> findAllCurrentFiles() {
+        //file name as key and blobId as value
+        HashMap<String, String> currentFileMap = new HashMap<>();
+        File[] currentFiles = CWD.listFiles(File::isFile);
+        for (File f :currentFiles){
+            Blob blob = new Blob(f);
+            currentFileMap.put(f.getName(), blob.getBlobId());
+        }
+        return currentFileMap;
+    }
+
+    private static List<String> findFilesUntracked(HashMap<String, String> currentFiles) {
+        //contains the file name of untracked files
+        ArrayList<String> untracked = new ArrayList<>();
+        Map<String, String> tracked = getHeadCommitByHash().getStoredFile();
+        Stage stage = getIndex();
+        HashMap<String, String> added = stage.getAdded();
+        HashSet<String> removed = stage.getRemoved();
+        for (String s : currentFiles.keySet()) {
+            if (tracked.containsKey(s)) {
+                if (removed.contains(s)) {
+                    untracked.add(s);
+                }
+            } else if (!added.containsKey(s)) {
+                untracked.add(s);
+            }
+        }
+        return untracked;
+    }
+
+    public static void createBranch(String branchName){
+        initializedCheck();
+        File newBranchFile = join(HEAD_DIR, branchName);
+        if (newBranchFile.exists()){
+            printandExit("A branch with that name already exists.");
+        }
+        writeContents(newBranchFile, readContents(getHeadFileOfBranch()));
+    }
+
 }
