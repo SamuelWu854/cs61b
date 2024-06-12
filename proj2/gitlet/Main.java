@@ -56,6 +56,9 @@ public class Main {
                 validateNumArgs(firstArg, args, 1);
                 Repository.createBranch(args[0]);
                 break;
+            case "rm-branch":
+                validateNumArgs(firstArg, args, 2);
+                Repository.rmBranch(args[1]);
             // TODO: FILL THE REST IN
         }
     }

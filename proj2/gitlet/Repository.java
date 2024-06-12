@@ -278,4 +278,19 @@ public class Repository {
         writeContents(newBranchFile, readContents(getHeadFileOfBranch()));
     }
 
+    public static void rmBranch(String branchName) {
+        File branchHeadFile = getBranchHeadFile(branchName);
+        if (!branchHeadFile.exists()){
+            printandExit("A branch with that name does not exist.");
+        }
+        String currentBranch = readContentsAsString(getHeadFileOfBranch());
+        if (currentBranch.equals(branchName)){
+            printandExit("Cannot remove the current branch.");
+        }
+        branchHeadFile.delete();
+    }
+
+    public static File getBranchHeadFile(String branchName){
+        return join(HEAD_DIR, branchName);
+    }
 }
