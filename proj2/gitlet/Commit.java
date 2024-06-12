@@ -102,7 +102,7 @@ public class Commit implements Serializable {
         // storedFile from parentCommit should be executed first
         // since the later put() would overwrite the existing value associated with the same key
         storedFile = new HashMap<>(p.storedFile);
-        HashMap newTrackedFile = stage.commit();
+        HashMap<String, String> newTrackedFile = stage.getAdded();
         storedFile.putAll(newTrackedFile);
         stage.clear();
         stage.save();
