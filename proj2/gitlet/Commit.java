@@ -3,6 +3,9 @@ package gitlet;
 
 
 
+import org.apache.commons.collections.ResettableIterator;
+
+import javax.xml.transform.Result;
 import java.io.File;
 import java.io.Serializable;
 import java.nio.file.Files;
@@ -157,4 +160,14 @@ public class Commit implements Serializable {
             writeContents(f, b.getContent());
         }
     }
+
+    public void reset(){
+        for (String s : storedFile.keySet()){
+            String s1 = storedFile.get(s);
+            Blob blob = Blob.getBlobById(s1);
+            blob.writeToSourceFile();
+        }
+        INDEX.delete();
+    }
+
 }

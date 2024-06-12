@@ -2,6 +2,8 @@ package gitlet;
 
 
 
+import edu.princeton.cs.algs4.CPM;
+
 import java.io.File;
 import java.util.*;
 
@@ -292,5 +294,33 @@ public class Repository {
 
     public static File getBranchHeadFile(String branchName){
         return join(HEAD_DIR, branchName);
+    }
+
+    public static void reset(String commitId) {
+        initializedCheck();
+        File commitFile = getFileFromShortId(commitId);
+        if (commitFile == null || !commitFile.exists()){
+            printandExit("No commit with that id exists.");
+        }
+        HashMap<String, String> currentFiles = findAllCurrentFiles();
+        List<String> untracked = findFilesUntracked(currentFiles);
+        Commit targetCommit = readObject(commitFile, Commit.class);
+        Map<String, String> storedFile = targetCommit.getStoredFile();
+        for (String s : untracked){
+            String id = currentFiles.get(s);
+            if (!id.equals(storedFile.get(s))){
+                printandExit("There is an "
+                        + "untracked file in the way; delete it, or add and commit it first.");
+            }
+        }
+
+        for (String f : currentFiles.keySet()){
+            File file = join(CWD, f);
+            restrictedDelete(file);
+        }
+
+        targetCommit.reset();
+        File headFileOfBranch = getHeadFileOfBranch();
+        writeContents(headFileOfBranch, commitId);
     }
 }

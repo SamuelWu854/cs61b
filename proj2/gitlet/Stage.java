@@ -12,7 +12,7 @@ import static gitlet.Utils.writeObject;
 public class Stage implements Serializable {
 
     // file path as key and Sha1 as value
-    private transient HashMap<String, String> tracked;
+    private transient HashMap<String, String> tracked = new HashMap<>();
 
     // added file, file path as key and Sha1 as value
     private HashMap<String, String> added = new HashMap<>();
