@@ -64,6 +64,10 @@ public class Main {
                 validateNumArgs(firstArg, args, 2);
                 Repository.reset(args[1]);
                 break;
+            case "merge":
+                validateNumArgs(firstArg, args, 2);
+                Repository.merge(args[1]);
+                break;
             // TODO: FILL THE REST IN
         }
     }

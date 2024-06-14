@@ -5,6 +5,7 @@ package gitlet;
 import edu.princeton.cs.algs4.CPM;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static gitlet.Utils.*;
@@ -322,5 +323,134 @@ public class Repository {
         targetCommit.reset();
         File headFileOfBranch = getHeadFileOfBranch();
         writeContents(headFileOfBranch, commitId);
+    }
+
+    public static void merge(String branchName) {
+        initializedCheck();
+        Stage stage = getIndex();
+        stage.checkStage();
+        File branchFile = findBranch(branchName);
+        if (branchFile == null){
+            printandExit("A branch with that name does not exist.");
+        }
+        if (branchFile.getName().equals(getHeadFileOfBranch().getName())){
+            printandExit("Cannot merge a branch with itself.");
+        }
+        String id = readContentsAsString(branchFile);
+        Commit headCommit = getHeadCommitByHash();
+        Commit targetCommit = getCommitById(id);
+        Commit splitCommit = getSplitCommit(headCommit, targetCommit);
+        if (splitCommit.getSha1Value().equals(targetCommit.getSha1Value())) {
+            printandExit("Given branch is an ancestor of the current branch.");
+        }
+        if (splitCommit.getSha1Value().equals(getHeadCommitByHash().getSha1Value())) {
+            changeBranch(branchName);
+            printandExit("Current branch fast-forwarded.");
+        }
+        HashMap<String, String> nowFiles = findAllCurrentFiles();
+        List<String> files = findFilesUntracked(nowFiles);
+        if (files.size() != 0) {
+            printandExit("There is an "
+                    + "untracked file in the way; delete it, or add and commit it first.");
+        }
+        for (String f : nowFiles.keySet()) {
+            File ff = join(CWD, f);
+            restrictedDelete(ff);
+        }
+        HashMap<String, String> resultTracked =
+                getResultFiles(splitCommit, headCommit, targetCommit);
+        StringBuilder message = new StringBuilder();
+        message.append("Merged ");
+        message.append(branchName);
+        message.append(" into ");
+        message.append(getHeadFileOfBranch());
+        message.append(".");
+        String sha = new Commit().merge(message.toString(),
+                getHeaderToCommitSHA1(), id, resultTracked);
+        File headerFile = getHeadFileOfBranch();
+        writeContents(headerFile, sha);
+    }
+
+    public static Commit getSplitCommit(Commit current, Commit given) {
+        List<String> parentListC = current.getParentList(new HashSet<>());
+        List<String> parentListG = given.getParentList(new HashSet<>());
+        int lenC = parentListC.size();
+        for (int i = 0; i < lenC; i++) {
+            if (parentListG.contains(parentListC.get(i))) {
+                return getCommitById(parentListC.get(i));
+            }
+        }
+        return getCommitById(parentListC.get(lenC - 1));
+    }
+
+    public static HashMap<String, String> getResultFiles(Commit split,
+                                                         Commit current, Commit given) {
+        boolean conflictFlag = false;
+        Map<String, String> splitTracked = split.getStoredFile();
+        Map<String, String> headerTracked = current.getStoredFile();
+        Map<String, String> givenTracked = given.getStoredFile();
+        HashMap<String, String> resultTracked = new HashMap<>();
+        for (String s : splitTracked.keySet()) {
+            if (headerTracked.containsKey(s)
+                    && headerTracked.get(s).equals(splitTracked.get(s))) {
+                if (givenTracked.containsKey(s)) {
+                    resultTracked.put(s, givenTracked.get(s));
+                }
+            } else if (givenTracked.containsKey(s)
+                    && givenTracked.get(s).equals(splitTracked.get(s))) {
+                if (headerTracked.containsKey(s)) {
+                    resultTracked.put(s, headerTracked.get(s));
+                }
+            } else if (givenTracked.containsKey(s) && headerTracked.containsKey(s)
+                    && givenTracked.get(s).equals(headerTracked.get(s))) {
+                resultTracked.put(s, headerTracked.get(s));
+            } else if (!givenTracked.containsKey(s) && !headerTracked.containsKey(s)) {
+                headerTracked.remove(s);
+            } else {
+                conflictFlag = true;
+                String endContent = getConflict(headerTracked.get(s), givenTracked.get(s));
+                String sha1Blob = sha1(endContent.getBytes(StandardCharsets.UTF_8));
+                Blob nb = new Blob(s, sha1Blob, endContent.getBytes(StandardCharsets.UTF_8));
+                resultTracked.put(s, nb.getBlobId());
+            }
+            headerTracked.remove(s);
+            givenTracked.remove(s);
+        }
+        for (String s : headerTracked.keySet()) {
+            if (!givenTracked.containsKey(s)) {
+                resultTracked.put(s, headerTracked.get(s));
+            } else if (headerTracked.get(s).equals(givenTracked.get(s))) {
+                resultTracked.put(s, headerTracked.get(s));
+            } else {
+                conflictFlag = true;
+                String endContent = getConflict(headerTracked.get(s), givenTracked.get(s));
+                String sha1Blob = sha1(endContent.getBytes(StandardCharsets.UTF_8));
+                Blob nb = new Blob(s, sha1Blob, endContent.getBytes(StandardCharsets.UTF_8));
+                resultTracked.put(s, nb.getBlobId());
+            }
+            givenTracked.remove(s);
+        }
+        for (String s : givenTracked.keySet()) {
+            resultTracked.put(s, givenTracked.get(s));
+        }
+        if (conflictFlag) {
+            System.out.println("Encountered a merge conflict.");
+        }
+        return resultTracked;
+    }
+
+    public static String getConflict(String currentSha, String givenSha) {
+        String content = "<<<<<<< HEAD\n";
+        content += currentSha == null ? ""
+                : readObject(getFileById(currentSha), Blob.class).readContentAsString();
+        content += "=======\n";
+        content += givenSha == null ? ""
+                : readObject(getFileById(givenSha), Blob.class).readContentAsString();
+        content += ">>>>>>>\n";
+        return content;
+    }
+
+    public static String getHeaderToCommitSHA1() {
+        return readContentsAsString(getHeadFileOfBranch());
     }
 }

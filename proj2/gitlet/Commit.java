@@ -170,4 +170,45 @@ public class Commit implements Serializable {
         INDEX.delete();
     }
 
+    public List<String> getParentList(HashSet<String> set) {
+        List<String> list = new ArrayList<>();
+        if (!set.contains(sha1Value)) {
+            list.add(sha1Value);
+            set.add(sha1Value);
+        }
+        if (this.parentCommit.size() == 1) {
+            Commit parentCommit = getCommitById(this.parentCommit.get(0));
+            list.addAll(parentCommit.getParentList(set));
+        } else if (this.parentCommit.size() == 2) {
+            if (!set.contains(parentCommit.get(0))) {
+                list.add(parentCommit.get(0));
+                set.add(parentCommit.get(0));
+            }
+            if (!set.contains(parentCommit.get(1))) {
+                list.add(parentCommit.get(1));
+                set.add(parentCommit.get(1));
+            }
+            list.addAll(getCommitById(parentCommit.get(0)).getParentList(set));
+            list.addAll(getCommitById(parentCommit.get(1)).getParentList(set));
+        }
+        return list;
+    }
+
+    public String merge(String m, String p1, String p2, HashMap<String, String> resultFiles) {
+        message = m;
+        Date date = new Date();
+        timeStamp = formatter.format(date);
+        parentCommit = new ArrayList<>();
+        parentCommit.add(p1);
+        parentCommit.add(p2);
+        this.storedFile = new HashMap<>(resultFiles);
+        Repository.INDEX.delete();
+        sha1Value = sha1(timeStamp, message, parentCommit.toString(), storedFile.toString());
+        File fileToSave = getFileById(sha1Value);
+        writeObject(fileToSave, this);
+        this.putFilesToCWD();
+        writeToGlobalLog();
+        return sha1Value;
+    }
+
 }

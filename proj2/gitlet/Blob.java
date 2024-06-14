@@ -3,6 +3,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 
 import static gitlet.Repository.OBJ_DIR;
 import static gitlet.Utils.*;
@@ -38,6 +39,16 @@ public class Blob implements Serializable {
         writeObject(blobFile, this);
     }
 
+    public Blob(String fileName, String sha1, byte[] con) {
+        File f = join(Repository.CWD, fileName);
+        this.sourceFile = f;
+        this.content = con;
+        this.blobId = sha1;
+        blobDir = join(Repository.OBJ_DIR, blobId.substring(0, 2));
+        blobFile = join(blobDir, blobId.substring(2));
+        writeObject(blobFile, this);
+    }
+
     public byte[] getContent() {
         return content;
     }
@@ -58,5 +69,7 @@ public class Blob implements Serializable {
         return readObject(getFileById(sha1), Blob.class);
      }
 
-
+    public String readContentAsString() {
+        return new String(content, StandardCharsets.UTF_8);
+    }
 }

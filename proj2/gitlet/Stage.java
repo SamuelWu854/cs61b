@@ -6,8 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import static gitlet.Repository.*;
-import static gitlet.Utils.join;
-import static gitlet.Utils.writeObject;
+import static gitlet.Utils.*;
 
 public class Stage implements Serializable {
 
@@ -121,5 +120,11 @@ public class Stage implements Serializable {
             System.out.println(s);
         }
         System.out.println();
+    }
+
+    public void checkStage() {
+        if (added.size() != 0 || removed.size() != 0) {
+            printandExit("You have uncommitted changes.");
+        }
     }
 }
