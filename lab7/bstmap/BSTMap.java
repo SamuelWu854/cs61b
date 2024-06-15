@@ -35,7 +35,15 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     public boolean containsKey(K key) {
         if (key == null)
             throw new IllegalArgumentException("calls put() with a null key");
-        return get(key) != null;
+        return containsKey(root, key) != null;
+    }
+
+    private K containsKey(Node x, K key){
+        if (x == null) return null;
+        int cmp = key.compareTo(x.key);
+        if (cmp < 0) return containsKey(x.left, key);
+        if (cmp > 0) return containsKey(x.right, key);
+        return x.key;
     }
 
     @Override
@@ -54,7 +62,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         else return x.val;
     }
 
-    public boolean isEmpty() {
+    private boolean isEmpty() {
         return size() == 0;
     }
 
@@ -134,7 +142,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return x;
     }
 
-    public K min() {
+    private K min() {
         if (isEmpty()) throw new NoSuchElementException("calls min() with empty symbol table");
         return min(root).key;
     }
@@ -145,7 +153,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     }
 
 
-    public void deleteMin() {
+    private void deleteMin() {
         if (isEmpty()) throw new NoSuchElementException("Symbol table underflow");
         root = deleteMin(root);
     }
@@ -161,7 +169,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     }
 
     @Override
-    public Iterator iterator() {
+    public Iterator<K> iterator() {
         return new IteratorOfKey(root);
     }
 
