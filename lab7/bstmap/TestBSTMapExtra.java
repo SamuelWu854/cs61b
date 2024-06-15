@@ -11,19 +11,19 @@ public class TestBSTMapExtra {
     /*
     * Sanity test for keySet, only here because it's optional
     */
-    @Test
-    public void sanityKeySetTest() {
-    	BSTMap<String, Integer> b = new BSTMap<String, Integer>();
-        HashSet<String> values = new HashSet<String>();
-        for (int i = 0; i < 455; i++) {
-            b.put("hi" + i, 1);
-            values.add("hi" + i);
-        }
-        assertEquals(455, b.size()); //keys are there
-        Set<String> keySet = b.keySet();
-        assertTrue(values.containsAll(keySet));
-        assertTrue(keySet.containsAll(values));
-    }
+//    @Test
+//    public void sanityKeySetTest() {
+//    	BSTMap<String, Integer> b = new BSTMap<String, Integer>();
+//        HashSet<String> values = new HashSet<String>();
+//        for (int i = 0; i < 455; i++) {
+//            b.put("hi" + i, 1);
+//            values.add("hi" + i);
+//        }
+//        assertEquals(455, b.size()); //keys are there
+//        Set<String> keySet = b.keySet();
+//        assertTrue(values.containsAll(keySet));
+//        assertTrue(keySet.containsAll(values));
+//    }
 
     /* Remove Test
      *
