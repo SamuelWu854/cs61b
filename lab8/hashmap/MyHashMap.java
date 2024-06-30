@@ -145,13 +145,13 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     @Override
     public V remove(K key) {
         if (containsKey(key)) {
+            keySet.remove(key);
+            nodeNum--;
             int index = getTableIndex(key.hashCode());
             for (Node node : buckets[index]) {
                 if (node.key.equals(key)) {
                     V value = node.value;
-                    buckets[index].remove(key);
-                    keySet.remove(key);
-                    nodeNum--;
+                    buckets[index].remove(node);
                     return value;
                 }
             }
@@ -162,12 +162,12 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     @Override
     public V remove(K key, V value) {
         if (containsKey(key)) {
+            keySet.remove(key);
+            nodeNum--;
             int index = getTableIndex(key.hashCode());
             for (Node node : buckets[index]) {
                 if (node.key.equals(key) || node.value.equals(value)) {
-                    buckets[index].remove(key);
-                    keySet.remove(key);
-                    nodeNum--;
+                    buckets[index].remove(node);
                     return value;
                 }
             }
