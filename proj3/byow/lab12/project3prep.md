@@ -8,6 +8,7 @@ Answer:
 
 -----
 
+
 **Can you think of an analogy between the process of tessellating hexagons and randomly generating a world using rooms and hallways?
 What is the hexagon and what is the tesselation on the Project 3 side?**
 

@@ -2,18 +2,48 @@ package byow.Core;
 
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
+import byow.TileEngine.TETileWrapper;
+import byow.TileEngine.Tileset;
+
+import java.awt.*;
+
+import static byow.Core.MyUtils.isNumber;
+import static byow.Core.MyUtils.isValidChar;
 
 public class Engine {
     TERenderer ter = new TERenderer();
     /* Feel free to change the width and height. */
     public static final int WIDTH = 80;
     public static final int HEIGHT = 30;
-
+    static Long seed;
+    public static final int RoomNum = 16;
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
      * including inputs from the main menu.
      */
+    private Menu menu = new Menu(40, 40);
+    // the world and the generator of world
+    private TETile[][] world = new TETile[WIDTH][HEIGHT];
+    private WorldGenerator worldGenerator;
+
+
     public void interactWithKeyboard() {
+        menu.drawMenu();
+        String inputString = "";
+        char typedKey;
+        while (true){
+            typedKey = MyUtils.getNextKey();
+            if (isNumber(typedKey) || isValidChar(typedKey)) {
+                inputString += typedKey;
+            }
+            if (typedKey == 'S'){
+                int stepIndex = inputString.indexOf("S");
+                inputString = inputString.substring(1, stepIndex);
+                System.out.println(inputString);
+                break;
+            }
+        }
+        renderWorld(inputString);
     }
 
     /**
@@ -46,7 +76,24 @@ public class Engine {
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
 
-        TETile[][] finalWorldFrame = null;
-        return finalWorldFrame;
+//        input = input.toUpperCase();
+//        int stepIndex = input.indexOf("S");
+//        String number = input.substring(1, stepIndex);
+        seed = Long.parseLong(input);
+        TETile[][] finalWorldFrame = new TETile[WIDTH][HEIGHT];
+        WorldGenerator worldGenerator = new WorldGenerator(seed, finalWorldFrame, false);
+        return worldGenerator.generateWorld();
     }
+
+    public void renderWorld(String inputString){
+        world = interactWithInputString(inputString);
+        ter.initialize(WIDTH,HEIGHT);
+        ter.renderFrame(world);
+    }
+    public void renderWorld(TETile[][] world){
+        ter.initialize(WIDTH,HEIGHT);
+        ter.renderFrame(world);
+    }
+
+
 }
