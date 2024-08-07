@@ -5,10 +5,11 @@ import byow.TileEngine.TETileWrapper;
 import byow.TileEngine.Tileset;
 import org.junit.Test;
 
+import java.io.Serializable;
 import java.util.*;
 
 
-public class Room {
+public class Room implements Serializable {
 
     private TETileWrapper[][] worldWrapper;
     private Random RANDOM;

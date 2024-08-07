@@ -2,21 +2,19 @@ package byow.Core;
 
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
-import byow.TileEngine.TETileWrapper;
-import byow.TileEngine.Tileset;
 
-import java.awt.*;
+import java.io.File;
+import java.io.Serializable;
 
-import static byow.Core.MyUtils.isNumber;
-import static byow.Core.MyUtils.isValidChar;
+import static byow.Core.MyUtils.*;
 
-public class Engine {
+public class Engine implements Serializable {
     TERenderer ter = new TERenderer();
     /* Feel free to change the width and height. */
     public static final int WIDTH = 80;
     public static final int HEIGHT = 30;
-    static Long seed;
-    public static final int RoomNum = 16;
+    private Long seed;
+
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
      * including inputs from the main menu.
@@ -25,25 +23,65 @@ public class Engine {
     // the world and the generator of world
     private TETile[][] world = new TETile[WIDTH][HEIGHT];
     private WorldGenerator worldGenerator;
-
+    private boolean gameInit = true;
+    /** The current working directory. */
+    public static final File CWD = new File(System.getProperty("user.dir"));
+    /** The .save directory. */
+    public static final File SAVE_DIR = join(CWD, ".save");
 
     public void interactWithKeyboard() {
-        menu.drawMenu();
+        // if it is the initialization of game, we should draw menu
+        if (gameInit) {
+            menu.drawMenu();
+        }
         String inputString = "";
         char typedKey;
-        while (true){
+        // using loop(or "dead loop") to wait the typed input from player!
+        // note: "x" is string(double queue); 'x' is char(single queue)
+        while (true) {
             typedKey = MyUtils.getNextKey();
+            // don't care about other char
             if (isNumber(typedKey) || isValidChar(typedKey)) {
                 inputString += typedKey;
             }
-            if (typedKey == 'S'){
+            // if it is the initialization of game and getting 'S',
+            // then, we can get seed(number) to create a new world
+            if (gameInit && typedKey =='S'){
                 int stepIndex = inputString.indexOf("S");
                 inputString = inputString.substring(1, stepIndex);
-                System.out.println(inputString);
                 break;
+            }
+            if (gameInit) {
+                if (typedKey == 'Q') {
+                    System.exit(0);
+                }
+                if (typedKey == 'N') {
+                    continue;
+                }
+                if (typedKey == 'L') {
+                    load();
+                    break;
+                }
+                // why not work when using switch()? -> just break condition fo 'if'
+                // because we need 'break;' statement
+            }
+            // if not game init, we should either move avatar or quit/save the game
+            // :Q,W,S,A,D
+            if (!gameInit && inputString.equals(":Q")) {
+                saveAndQuit();
+            }
+            if (!gameInit && inputString.length() == 1) {
+                if (inputString.equals("W") || inputString.equals("S")
+                        || inputString.equals("A") || inputString.equals("D")
+                        || inputString.equals("P")) {
+                    break;
+                }
             }
         }
         renderWorld(inputString);
+        // next typed in keyboard
+        interactWithKeyboard();
+
     }
 
     /**
@@ -76,24 +114,85 @@ public class Engine {
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
 
-//        input = input.toUpperCase();
-//        int stepIndex = input.indexOf("S");
-//        String number = input.substring(1, stepIndex);
-        seed = Long.parseLong(input);
-        TETile[][] finalWorldFrame = new TETile[WIDTH][HEIGHT];
-        WorldGenerator worldGenerator = new WorldGenerator(seed, finalWorldFrame, false);
-        return worldGenerator.generateWorld();
+        // when user is playing the game
+        switch (input){
+            case "W":
+                return worldGenerator.moveAvatarAndGenerateWorld("W");
+            case "S":
+                return worldGenerator.moveAvatarAndGenerateWorld("S");
+            case "A":
+                return worldGenerator.moveAvatarAndGenerateWorld("A");
+            case "D":
+                return worldGenerator.moveAvatarAndGenerateWorld("D");
+        }
+        // if it is the initialization of the game
+        if (seed == null) {
+            seed = Long.parseLong(input);
+            TETile[][] finalWorldFrame = new TETile[WIDTH][HEIGHT];
+            worldGenerator = new WorldGenerator(seed, finalWorldFrame, false);
+            return worldGenerator.generateWorld();
+        }
+        return world;
     }
 
     public void renderWorld(String inputString){
         world = interactWithInputString(inputString);
-        ter.initialize(WIDTH,HEIGHT);
-        ter.renderFrame(world);
+        if (gameInit){
+            // if the game haven't inited yet, set it to true
+            // and it will not longer draw menu
+            gameInit = false;
+            renderWorldAtInit(world);
+        } else {
+            // game has already benn inited
+            // just move the avatar
+            renderWorldWithMoving(world);
+        }
+
     }
-    public void renderWorld(TETile[][] world){
-        ter.initialize(WIDTH,HEIGHT);
+
+    private void renderWorldWithMoving(TETile[][] world) {
         ter.renderFrame(world);
     }
 
+    public void renderWorldAtInit(TETile[][] world){
+        ter.initialize(WIDTH,HEIGHT);
+        ter.renderFrame(world);
+    }
+    // load engine of saving
+    private void load() {
+        // read obj, then get some variables
+        Engine loadEngine = readObject(join(SAVE_DIR, "saveEngine.txt"), Engine.class);
+        worldGenerator = loadEngine.getWorldGenerator();
+        world = loadEngine.getWorld();
+        ter = loadEngine.getTer();
+        seed = loadEngine.getSeed();
+        System.out.println(seed);
+    }
 
+    // save engine and quit process
+    private void saveAndQuit() {
+        // save obj in file
+        // note: we must serialize all classes (i.e. implements Serializable)
+        if (!SAVE_DIR.exists()) {
+            SAVE_DIR.mkdir();
+        }
+        writeObject(join(SAVE_DIR, "saveEngine.txt"), this);
+        System.exit(0);
+    }
+
+    public WorldGenerator getWorldGenerator() {
+        return worldGenerator;
+    }
+
+    public Long getSeed() {
+        return seed;
+    }
+
+    public TERenderer getTer() {
+        return ter;
+    }
+
+    public TETile[][] getWorld() {
+        return world;
+    }
 }

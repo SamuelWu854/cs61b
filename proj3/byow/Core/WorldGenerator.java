@@ -3,11 +3,11 @@ package byow.Core;
 import byow.TileEngine.TETile;
 import byow.TileEngine.TETileWrapper;
 import byow.TileEngine.Tileset;
-import jh61b.junit.In;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class WorldGenerator {
+public class WorldGenerator implements Serializable {
 
     private static final int RoomNum = 25; // total number of room
     private final int N;                   // dimension of worldWrappers
@@ -63,6 +63,67 @@ public class WorldGenerator {
 
     }
 
+    public TETile[][] moveAvatarAndGenerateWorld(String direction) {
+        moveAvatar(direction);
+        return getWorldByWorldWrapper();
+    }
+
+    public void moveAvatar(String direction) {
+        if ("W".equals(direction) && validDirection("W")) {
+            moveTo("W");
+        }
+        if ("S".equals(direction) && validDirection("S")) {
+            moveTo("S");
+        }
+        if ("A".equals(direction) && validDirection("A")) {
+            moveTo("A");
+        }
+        if ("D".equals(direction) && validDirection("D")) {
+            moveTo("D");
+        }
+    }
+
+    private boolean validDirection(String direction) {
+        int x = avatar.getX();
+        int y = avatar.getY();
+        TETileWrapper teTileWrapper = switch (direction) {
+            case "W" -> worldWrappers[x][y + 1];
+            case "S" -> worldWrappers[x][y - 1];
+            case "A" -> worldWrappers[x - 1][y];
+            case "D" -> worldWrappers[x + 1][y];
+            default -> null;
+        };
+        return teTileWrapper.getTile().equals(Tileset.FLOOR);
+    }
+
+    public void moveTo(String direction) {
+        int x = avatar.getX();
+        int y = avatar.getY();
+        switch (direction) {
+            case "W":
+                worldWrappers[x][y].setTile(Tileset.FLOOR);
+                worldWrappers[x][y + 1].setTile(Tileset.AVATAR);
+                this.avatar = worldWrappers[x][y + 1];
+                break;
+            case "S":
+                worldWrappers[x][y].setTile(Tileset.FLOOR);
+                worldWrappers[x][y - 1].setTile(Tileset.AVATAR);
+                this.avatar = worldWrappers[x][y - 1];
+                break;
+            case "A":
+                worldWrappers[x][y].setTile(Tileset.FLOOR);
+                worldWrappers[x - 1][y].setTile(Tileset.AVATAR);
+                this.avatar = worldWrappers[x - 1][y];
+                break;
+            case "D":
+                worldWrappers[x][y].setTile(Tileset.FLOOR);
+                worldWrappers[x + 1][y].setTile(Tileset.AVATAR);
+                this.avatar = worldWrappers[x + 1][y];
+                break;
+        }
+    }
+
+
     public int getTarget() {
         return target;
     }
@@ -98,10 +159,6 @@ public class WorldGenerator {
         return (y - 1) * N + (x - 1);
     }
 
-    private int h(int v) {
-        return Math.abs(toX(v) - toX(target)) + Math.abs(toY(v) - toY(target));
-    }
-
     /**
      * reset all distTo, edgeTo and tileWrapper without room
      */
@@ -124,8 +181,8 @@ public class WorldGenerator {
         return N * N;
     }
 
-    private void connectRooms(){
-        for (int i = 0; i < RoomNum; i++){
+    private void connectRooms() {
+        for (int i = 0; i < RoomNum; i++) {
             Room room = new Room(worldWrappers, i, seed);
             rooms.add(room);
             room.makeRoom();
@@ -193,11 +250,37 @@ public class WorldGenerator {
     private boolean isHallwayWall(int x, int y) {
         // can choose side of limbo and room as wall of hallway
         // but can't choose floor in already build hallway as wall of hallway
-        return x < width  && x >= 0
+        return x < width && x >= 0
                 && y < height && y >= 0
                 && !worldWrappers[x][y].isRoom()
                 && !worldWrappers[x][y].getTile().equals(Tileset.FLOOR);
     }
+
+//    private void astar() {
+//        ArrayDeque<Integer> fringe = new ArrayDeque<>();
+//        fringe.add(source);
+//        setMarkInWorldWrappers(source, true);
+//        while (!fringe.isEmpty()) {
+//            int v = findMinUnmarked(fringe);
+//            fringe.remove(v);
+//            for (TETileWrapper teTileWrapper : findNeighbor(v)) {
+//                if (!teTileWrapper.isMarked()) {
+//                    int w = xyTo1D(teTileWrapper.getX(), teTileWrapper.getY());
+//                    fringe.add(w);
+//                    setMarkInWorldWrappers(w, true);
+//                    edgeTo[w] = v;
+//                    distTo[w] = distTo[v] + 1;
+//                    if (w == target) {
+//                        targetFound = true;
+//                    }
+//                    if (targetFound) {
+//                        return;
+//                    }
+//                }
+//            }
+//
+//        }
+//    }
 
     private void astar(){
         ArrayDeque<Integer> fringe = new ArrayDeque<>();
@@ -206,37 +289,40 @@ public class WorldGenerator {
         while (!fringe.isEmpty()){
             int v = findMinUnmarked(fringe);
             fringe.remove(v);
-            for (TETileWrapper teTileWrapper : findNeighbor(v)){
-                if (!teTileWrapper.isMarked()){
-                    int w = xyTo1D(teTileWrapper.getX(), teTileWrapper.getY());
+            for (TETileWrapper tile :findNeighbor(v)){
+                if (!tile.isMarked()){
+                    int w = xyTo1D(tile.getX(), tile.getY());
                     fringe.add(w);
                     setMarkInWorldWrappers(w, true);
                     edgeTo[w] = v;
                     distTo[w] = distTo[v] + 1;
                     if (w == target){
                         targetFound = true;
-                    }
-                    if (targetFound){
                         return;
                     }
                 }
             }
-
         }
+
     }
 
-    private int findMinUnmarked(Queue<Integer> queue){
+
+    private int findMinUnmarked(Queue<Integer> queue) {
         int minVertex = queue.peek();
         int minPath = distTo[minVertex] + h(minVertex);
-        for (int vertex : queue){
-            if (distTo[vertex] + h(vertex) < minPath){
+        for (int vertex : queue) {
+            if (distTo[vertex] + h(vertex) < minPath) {
                 minVertex = vertex;
             }
         }
         return minVertex;
     }
 
-    private LinkedList<TETileWrapper> findNeighbor(int v){
+    private int h(int v) {
+        return Math.abs(toX(v) - toX(target)) + Math.abs(toY(v) - toY(target));
+    }
+
+    private LinkedList<TETileWrapper> findNeighbor(int v) {
         LinkedList<TETileWrapper> neighbors = new LinkedList<>();
         int x = toX(v);
         int y = toY(v);
@@ -264,13 +350,13 @@ public class WorldGenerator {
                 && !worldWrappers[x][y].isRoom();
     }
 
-    private void setFirstTargetAndSource(Room room){
+    private void setFirstTargetAndSource(Room room) {
         int randomNum = RANDOM.nextInt((width - 2) * (height - 2));
         int num = 0;
         // transfer 2d to 1d
-        for (int x = 1; x < width - 1; x++){
-            for (int y = 1; y < height - 1; y++){
-                if (num == randomNum){
+        for (int x = 1; x < width - 1; x++) {
+            for (int y = 1; y < height - 1; y++) {
+                if (num == randomNum) {
                     setTarget(x, y);
                     worldWrappers[x][y].setTile(Tileset.FLOOR);
                     isFirst = false;
@@ -284,7 +370,7 @@ public class WorldGenerator {
         }
     }
 
-    private void setRandomTargetAndSource(Room room){
+    private void setRandomTargetAndSource(Room room) {
         LinkedList<TETileWrapper> notRoomButFloors = notRoomButFloors();
 
         Map<TETileWrapper, TETileWrapper> exitsAndDoor = room.getAllExitsOfRoom();
@@ -308,7 +394,7 @@ public class WorldGenerator {
     private LinkedList<TETileWrapper> notRoomButFloors() {
         LinkedList<TETileWrapper> notRoomButFloors = new LinkedList<>();
         for (int x = 1; x < width - 1; x += 1) {
-            for (int y = 1; y < height - 1; y += 1 ) {
+            for (int y = 1; y < height - 1; y += 1) {
                 if (!worldWrappers[x][y].isRoom() && worldWrappers[x][y].getTile().equals(Tileset.FLOOR)) {
                     notRoomButFloors.add(worldWrappers[x][y]);
                 }
@@ -324,10 +410,25 @@ public class WorldGenerator {
 
     public TETile[][] generateWorld() {
         connectRooms();
+        randomAvatar();
         return getWorldByWorldWrapper();
     }
 
-    private TETile[][] getWorldByWorldWrapper(){
+    private void randomAvatar() {
+        LinkedList<TETileWrapper> floor = new LinkedList<>();
+        for (int x = 0; x < width - 1; x++){
+            for (int y = 0; y < height - 1; y++){
+                if (worldWrappers[x][y].getTile().equals(Tileset.FLOOR)){
+                    floor.add(worldWrappers[x][y]);
+                }
+            }
+        }
+        TETileWrapper avatarTile = floor.get(RANDOM.nextInt(floor.size()));
+        worldWrappers[avatarTile.getX()][avatarTile.getY()].setTile(Tileset.AVATAR);
+        this.avatar = worldWrappers[avatarTile.getX()][avatarTile.getY()];
+    }
+
+    private TETile[][] getWorldByWorldWrapper() {
         TETile[][] world = new TETile[width][height];
         for (int x = 0; x < width; x += 1) {
             for (int y = 0; y < height; y += 1) {

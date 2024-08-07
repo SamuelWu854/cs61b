@@ -1,6 +1,8 @@
 package byow.TileEngine;
 
-public class TETileWrapper {
+import java.io.Serializable;
+
+public class TETileWrapper implements Serializable {
     //Tile type
     private TETile tile;
     // booleanValue
