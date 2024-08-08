@@ -123,11 +123,6 @@ public class WorldGenerator implements Serializable {
         }
     }
 
-
-    public int getTarget() {
-        return target;
-    }
-
     private void setSource(int x, int y) {
         this.source = xyTo1D(x, y);
     }
@@ -255,32 +250,6 @@ public class WorldGenerator implements Serializable {
                 && !worldWrappers[x][y].isRoom()
                 && !worldWrappers[x][y].getTile().equals(Tileset.FLOOR);
     }
-
-//    private void astar() {
-//        ArrayDeque<Integer> fringe = new ArrayDeque<>();
-//        fringe.add(source);
-//        setMarkInWorldWrappers(source, true);
-//        while (!fringe.isEmpty()) {
-//            int v = findMinUnmarked(fringe);
-//            fringe.remove(v);
-//            for (TETileWrapper teTileWrapper : findNeighbor(v)) {
-//                if (!teTileWrapper.isMarked()) {
-//                    int w = xyTo1D(teTileWrapper.getX(), teTileWrapper.getY());
-//                    fringe.add(w);
-//                    setMarkInWorldWrappers(w, true);
-//                    edgeTo[w] = v;
-//                    distTo[w] = distTo[v] + 1;
-//                    if (w == target) {
-//                        targetFound = true;
-//                    }
-//                    if (targetFound) {
-//                        return;
-//                    }
-//                }
-//            }
-//
-//        }
-//    }
 
     private void astar(){
         ArrayDeque<Integer> fringe = new ArrayDeque<>();

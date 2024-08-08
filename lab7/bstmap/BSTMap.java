@@ -122,11 +122,21 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return value;
     }
 
+    /**
+     * NOTE!!!
+     * At line 138, 139
+     * you can't just use
+     *        if (cmp < 0) return = remove(x.left, key);
+     *        else if (cmp > 0) return = remove(x.right, key);
+     * as the given sample did,
+     * we would lost the root and only the subtree left!!!
+     */
+
     private Node remove(Node x, K key) {
         if (x == null) return null;
         int cmp = key.compareTo(x.key);
-        if (cmp < 0) return remove(x.left, key);
-        else if (cmp > 0) return remove(x.right, key);
+        if (cmp < 0) x.left = remove(x.left, key);
+        else if (cmp > 0) x.right = remove(x.right, key);
         else {
             // with only one child, point my parent to my child
             if (x.right == null) return x.left;
